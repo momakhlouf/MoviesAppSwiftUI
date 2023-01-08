@@ -8,11 +8,39 @@
 import SwiftUI
 
 struct UpcomingMovieView: View {
-  //  @ObservedObject var movieService = MovieService()
-    @State var movies : [UpcomingMovie] = []
+
+    @StateObject private var upcomingViewModel = UpcomingMoviesViewModel()
     var body: some View {
-        
         NavigationStack{
+            switch upcomingViewModel.state{
+            case .loading :
+                ProgressView()
+                
+            case .error(let error) :
+                VStack{
+                    Text("\(error.localizedDescription)")
+                    Button("Retry") {
+                        Task{
+                         await upcomingViewModel.loadMovies()
+                        }
+                    }
+                    .padding()
+                    .buttonStyle(.borderedProminent)
+                }
+                
+            case .loaded(let movies) :
+                upcomingMovies(of: movies)
+            }
+            
+        }
+        .task{
+            await upcomingViewModel.loadMovies()
+        }
+    }
+    
+    @ViewBuilder
+    private func upcomingMovies( of movies : [UpcomingMovie]) -> some View{
+        if movies.isEmpty == false {
             List(movies) { movie in
                 HStack{
                     AsyncImage(url: movie.posterURL){ image in
@@ -31,19 +59,14 @@ struct UpcomingMovieView: View {
                             .lineLimit(4)
                     }
                 }
-                .padding()
             }
             .listStyle(.inset)
-            .task{
-                do{
-                    let service = MovieService()
-                    movies = try await service.getMovieFromApi()
-                }catch{
-                    print(error)
-                }
-            }
-            .navigationTitle("Upcomming Movies")
+            .navigationTitle("Upcoming Movies")
+        }else{
+            Text("NO Upcoming Movies")
+            
         }
+      
     }
 }
 
