@@ -9,9 +9,16 @@ import SwiftUI
 
 @main
 struct MovieSwiftUIApp: App {
+    @StateObject private var vm = FavoriteViewModel()
+
     var body: some Scene {
         WindowGroup {
-            UpcomingMovieView()
+            
+            TabBarView()
+           //     .environment(\.managedObjectContext, vm.container.viewContext)
+
+          //  FavoriteMovies()
+
         }
     }
 }
